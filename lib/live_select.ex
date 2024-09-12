@@ -77,7 +77,7 @@ defmodule LiveSelect do
   in order to save space. You can do this by specifying an additional `tag_label` key when passing options as map or keywords. For example, passing these options:
 
   ```
-  [%{label: "New York", value "NY", tag_label: "NY"}, %{label: "Barcelona", value: "BCN", tag_label: "BCN"}]  
+  [%{label: "New York", value: "NY", tag_label: "NY"}, %{label: "Barcelona", value: "BCN", tag_label: "BCN"}]  
   ```
 
   will result in "New York" and "Barcelona" being used for the options in the dropdown, while "NY" and "BCN" will be used for the tags (and the values).
@@ -184,8 +184,6 @@ defmodule LiveSelect do
     
   _LiveView or LiveComponent that is the target of the form's events:_
   ```
-  import LiveSelect
-
   @impl true
   def handle_event("live_select_change", %{"text" => text, "id" => live_select_id}, socket) do 
       cities = City.search(text)
@@ -337,9 +335,9 @@ defmodule LiveSelect do
   ```
 
   As you can see, the label is the name of the city whereas the value is the entire struct. This is because we want to be able to recreate the struct from the value, so we need everything. `LiveSelect`
-  uses this function to map values set in the form to the options.
+  uses `value_mapper/1` to map the values set in the form to the options expected by `LiveSelect`.
 
-  You can also use the `value_mapper/1` function to map the values to the options when updating the list of options while handling `live_select_change`:
+  You can also use the `value_mapper/1` function to map values to options when updating the list of options while handling `live_select_change`:
 
   ```
   def handle_event("live_select_change", %{"text" => text, "id" => live_select_id}, socket) do
@@ -347,7 +345,7 @@ defmodule LiveSelect do
       retrieve_options()
       |> Enum.map(&value_mapper/1)
 
-    send_update(Component, id: live_select_id, options: options)
+    send_update(LiveSelect.Component, id: live_select_id, options: options)
 
     {:noreply, socket}
   end
@@ -460,7 +458,7 @@ defmodule LiveSelect do
     doc:
       "Event to emit when the text input receives focus. The component id will be sent in the event's params"
 
-  @styling_options ~w(active_option_class available_option_class clear_button_class container_class container_extra_class dropdown_class dropdown_extra_class option_class option_extra_class text_input_class text_input_extra_class text_input_selected_class selected_option_class tag_class tag_extra_class tags_container_class tags_container_extra_class)a
+  @styling_options ~w(active_option_class available_option_class clear_button_class clear_button_extra_class clear_tag_button_class clear_tag_button_extra_class container_class container_extra_class dropdown_class dropdown_extra_class option_class option_extra_class text_input_class text_input_extra_class text_input_selected_class selected_option_class tag_class tag_extra_class tags_container_class tags_container_extra_class)a
 
   for attr_name <- @styling_options do
     Phoenix.Component.Declarative.__attr__!(

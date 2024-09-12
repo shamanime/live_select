@@ -1,3 +1,14 @@
+* add options clear_tag_button_class and clear_tag_button_extra_class to style button to clear tags
+* fix [bug](https://github.com/maxmarcon/live_select/issues/81) where selection was not restored after focus+blur when value is pre-selected or forced 
+  
+## 1.4.2 (2024-06-19)
+
+do not restore selection after blur it it was cleard by hitting the clear button
+
+## 1.4.1 (2024-06-18)
+
+* fix bug introduced by LV-1.0's new focus behavior (https://github.com/maxmarcon/live_select/issues/72)
+
 ## 1.4.0 (2024-03-18)
 
 * support for assocations and embeds

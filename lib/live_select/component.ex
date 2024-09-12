@@ -16,6 +16,8 @@ defmodule LiveSelect.Component do
     available_option_class: nil,
     clear_button_class: nil,
     clear_button_extra_class: nil,
+    clear_tag_button_class: nil,
+    clear_tag_button_extra_class: nil,
     user_defined_options: false,
     container_class: nil,
     container_extra_class: nil,
@@ -86,7 +88,7 @@ defmodule LiveSelect.Component do
         active_option: -1,
         hide_dropdown: true,
         awaiting_update: true,
-        saved_selection: nil,
+        last_selection: nil,
         selection: [],
         value_mapper: & &1
       )
@@ -195,6 +197,8 @@ defmodule LiveSelect.Component do
         socket
       end
 
+    socket = maybe_save_selection(socket)
+
     {:ok, socket}
   end
 
@@ -209,17 +213,9 @@ defmodule LiveSelect.Component do
   end
 
   @impl true
-  def handle_event("click", _params, socket) do
-    socket = assign(socket, hide_dropdown: false)
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("focus", _params, socket) do
+  def handle_event(event, _params, socket) when event in ~w(focus click) do
     socket =
       socket
-      |> maybe_save_selection()
       |> then(
         &if &1.assigns.mode == :single do
           clear(&1, %{input_event: false, parent_event: &1.assigns[:"phx-focus"]})
@@ -334,7 +330,12 @@ defmodule LiveSelect.Component do
 
   @impl true
   def handle_event("clear", _params, socket) do
-    {:noreply, clear(socket, %{input_event: true})}
+    socket =
+      socket
+      |> assign(last_selection: nil)
+      |> clear(%{input_event: true})
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -470,6 +471,7 @@ defmodule LiveSelect.Component do
       selection: selection,
       hide_dropdown: true
     )
+    |> maybe_save_selection()
     |> client_select(Map.merge(%{input_event: true}, extra_params))
   end
 
@@ -486,21 +488,20 @@ defmodule LiveSelect.Component do
 
   defp maybe_save_selection(socket) do
     socket
-    |> update(:saved_selection, fn
+    |> update(:last_selection, fn
       _, %{selection: selection, mode: :single} when selection != [] -> selection
-      saved_selection, _ -> saved_selection
+      last_selection, _ -> last_selection
     end)
   end
 
   defp maybe_restore_selection(socket) do
     update(socket, :selection, fn
-      _, %{saved_selection: saved_selection, mode: :single} when saved_selection != nil ->
-        saved_selection
+      _, %{last_selection: last_selection, mode: :single} when last_selection != nil ->
+        last_selection
 
       selection, _ ->
         selection
     end)
-    |> assign(:saved_selection, nil)
   end
 
   defp clear(socket, params) do
