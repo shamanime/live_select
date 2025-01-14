@@ -12,7 +12,7 @@ interface for search-like functionalities with type-ahead. `LiveSelect`s feature
 
 * Single as well as multiple selection
 * Options to configure the behaviour, such as minimum number of characters that trigger an update or the maximum number of selectable options
-* Default styles for daisyUI and tailwindcss, which are fully customizable and can be completely overriden if needed
+* Default styles for daisyUI and tailwindcss, which are fully customizable and can be completely overridden if needed
 * Ability to customize the rendered HTML for dropdown entries and tags using slots.
 
 ### [Try it in the showcase app](https://live-select.fly.dev/) 🔬
@@ -24,6 +24,10 @@ interface for search-like functionalities with type-ahead. `LiveSelect`s feature
 ### Multiple selection (tags mode)
 
 ![DEMO](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/demo_tags.gif)
+
+### Multiple selection (quick_tags mode)
+
+![DEMO](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/demo_quick_tags.gif)
 
 ## Usage Example 🧭
 
@@ -199,5 +203,5 @@ Tests that require a LiveView use the showcase app as the parent LiveView.
 - [X] Enable multiple selection mode
 - [X] Expose as function component (and drop LV 0.17 support)
 - [X] Add cheatsheet
+- [X] Additional multiple selection mode 
 - [ ] Add section to document testing strategies
-- [ ] Additional multiple selection mode 

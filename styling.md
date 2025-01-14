@@ -27,24 +27,25 @@ to [live_select/1](`LiveSelect.live_select/1`).
 You can control the style of the following elements:
 
 1. The outer **container** of the live_select component
-2. The **text input** field
-3. The **text input** field when an option has been selected
+2. The **text_input** field
+3. The **text_input_selected** text field when an option has been selected
 4. The **dropdown** that contains the selectable options
 5. The single selectable **option**(s)
-6. The currently **active option**
-7. The **clear button** for the selection (if `allow_clear` is set)
+6. The currently **active_option**
+7. The **clear_button** to clear the selection (only if `allow_clear` is set)
+8. **selected_option**. This is an option in the dropdown that has already been selected. It's still visible, but can't be selected again
+9. **available_option**. This is an option in the dropdown that has not been selected and is available for selection 
+10. **unavailable_option**. This is an option in the dropdown that has not been selected but is not available for selection. This happens when there is a specified maximum number of selectable elements and that number has been reached.
 
 Here's a visual representation of the elements:
 
 ![styled elements](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/styled_elements.png)
 
-In `tags` mode there are 4 additional stylable elements:
+In `tags` and `quick_tags` mode there are 3 additional stylable elements:
 
-7. The **tag** showing the selected options
-8. The **tags_container** that contains the tags
-9. The **selected_option**. This is an option in the dropdown that has already been selected. It's still visible, but can't be selected again
-10. The **available_option**. This is an option in the dropdown that has not been selected and is available for selection 
-11. The **clear buttons** to remove the tags
+11. **tag** showing the selected options
+12. **tags_container** that contains the tags
+13. **clear_tag_button** button to remove the tags
 
 ![styled elements_tags](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/styled_elements_tags.png)
 
@@ -66,11 +67,12 @@ The following table shows the default styles for each element and the options yo
 | *container* | dropdown dropdown-open | h-full relative text-black | container_class | container_extra_class |
 | *dropdown* | bg-base-200 dropdown-content menu menu-compact p-1 rounded-box shadow w-full z-[1] | absolute bg-gray-100 inset-x-0 rounded-md shadow top-full z-50 | dropdown_class | dropdown_extra_class |
 | *option* |  | px-4 py-1 rounded | option_class | option_extra_class |
-| *selected_option* | disabled | text-gray-400 | selected_option_class |  |
+| *selected_option* | cursor-pointer font-bold | cursor-pointer font-bold hover:bg-gray-400 rounded | selected_option_class |  |
 | *tag* | badge badge-primary p-1.5 text-sm | bg-blue-400 flex p-1 rounded-lg text-sm | tag_class | tag_extra_class |
 | *tags_container* | flex flex-wrap gap-1 p-1 | flex flex-wrap gap-1 p-1 | tags_container_class | tags_container_extra_class |
 | *text_input* | input input-bordered pr-6 w-full | disabled:bg-gray-100 disabled:placeholder:text-gray-400 disabled:text-gray-400 pr-6 rounded-md w-full | text_input_class | text_input_extra_class |
 | *text_input_selected* | input-primary | border-gray-600 text-gray-600 | text_input_selected_class |  |
+| *unavailable_option* | disabled | text-gray-400 | unavailable_option_class |  |
 
 For example, if you want to remove rounded borders from the options, have the active option use white text on a red background,
 and use green as a background color for tags instead of blue, render [live_select/1](`LiveSelect.live_select/1`)

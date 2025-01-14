@@ -1,3 +1,23 @@
+* remove dependency from Jason library
+
+## 1.5.2 (2024-12-28)
+
+* Fix [bug](https://github.com/maxmarcon/live_select/issues/70) where the keyboard doesn't show on some mobile browsers if an element is already selected in single mode
+
+## 1.5.1 (2024-12-28)
+
+* Add unavailable_option_class to style options that cannot be selected because of max_selectable > 0
+* Fix can't remove items in quick_tags mode via dropdown with max_selectable
+
+## 1.5.0 (2024-12-27)
+
+* new quick_tags mode 
+* showcase app: add toggle to style options as checkboxes
+
+## 1.4.4 (2024-12-07)
+
+* support for LiveView 1.0.0
+
 ## 1.4.3 (2024-10-28)
 
 * add options clear_tag_button_class and clear_tag_button_extra_class to style button to clear tags
@@ -13,7 +33,7 @@ do not restore selection after blur it it was cleard by hitting the clear button
 
 ## 1.4.0 (2024-03-18)
 
-* support for assocations and embeds
+* support for associations and embeds
 * add `value_mapper` assign and `decode/1` function
 
 ## 1.3.3 (2024-02-06)

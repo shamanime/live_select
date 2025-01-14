@@ -14,6 +14,7 @@ defmodule LiveSelect.Component do
     active_option_class: nil,
     allow_clear: false,
     available_option_class: nil,
+    unavailable_option_class: nil,
     clear_button_class: nil,
     clear_button_extra_class: nil,
     clear_tag_button_class: nil,
@@ -48,12 +49,13 @@ defmodule LiveSelect.Component do
     tailwind: [
       active_option: ~W(text-white bg-gray-600),
       available_option: ~W(cursor-pointer hover:bg-gray-400 rounded),
+      unavailable_option: ~W(text-gray-400),
       clear_button: ~W(hidden cursor-pointer),
       clear_tag_button: ~W(cursor-pointer),
       container: ~W(h-full text-black relative),
       dropdown: ~W(absolute rounded-md shadow z-50 bg-gray-100 inset-x-0 top-full),
       option: ~W(rounded px-4 py-1),
-      selected_option: ~W(text-gray-400),
+      selected_option: ~W(cursor-pointer font-bold hover:bg-gray-400 rounded),
       text_input:
         ~W(rounded-md w-full disabled:bg-gray-100 disabled:placeholder:text-gray-400 disabled:text-gray-400 pr-6),
       text_input_selected: ~W(border-gray-600 text-gray-600),
@@ -63,13 +65,14 @@ defmodule LiveSelect.Component do
     daisyui: [
       active_option: ~W(active),
       available_option: ~W(cursor-pointer),
+      unavailable_option: ~W(disabled),
       clear_button: ~W(hidden cursor-pointer),
       clear_tag_button: ~W(cursor-pointer),
       container: ~W(dropdown dropdown-open),
       dropdown:
         ~W(dropdown-content z-[1] menu menu-compact shadow rounded-box bg-base-200 p-1 w-full),
       option: nil,
-      selected_option: ~W(disabled),
+      selected_option: ~W(cursor-pointer font-bold),
       text_input: ~W(input input-bordered w-full pr-6),
       text_input_selected: ~W(input-primary),
       tags_container: ~W(flex flex-wrap gap-1 p-1),
@@ -78,7 +81,7 @@ defmodule LiveSelect.Component do
     none: []
   ]
 
-  @modes ~w(single tags)a
+  @modes ~w(single tags quick_tags)a
 
   @impl true
   def mount(socket) do
@@ -250,13 +253,15 @@ defmodule LiveSelect.Component do
         %{label: label, value: value}
       end
 
+    json = Phoenix.json_library()
+
     {:noreply,
      assign(socket,
        options: options,
        selection:
          Enum.map(socket.assigns.selection, fn %{value: value} ->
            Enum.find(options, fn %{value: option_value} ->
-             Jason.encode(option_value) == Jason.encode(value)
+             json.encode(option_value) == json.encode(value)
            end)
          end)
          |> Enum.filter(& &1)
@@ -407,17 +412,6 @@ defmodule LiveSelect.Component do
   defp maybe_select(socket, extra_params \\ %{})
 
   defp maybe_select(
-         %{assigns: %{selection: selection, max_selectable: max_selectable}} = socket,
-         _extra_params
-       )
-       when max_selectable > 0 and length(selection) >= max_selectable do
-    assign(socket,
-      active_option: -1,
-      hide_dropdown: true
-    )
-  end
-
-  defp maybe_select(
          %{
            assigns: %{
              current_text: current_text,
@@ -451,25 +445,52 @@ defmodule LiveSelect.Component do
 
   defp maybe_select(%{assigns: %{active_option: -1}} = socket, _extra_params), do: socket
 
+  defp maybe_select(
+         %{assigns: %{active_option: active_option, options: options, selection: selection}} =
+           socket,
+         extra_params
+       )
+       when active_option >= 0 do
+    option = Enum.at(options, active_option)
+
+    if already_selected?(option, selection) do
+      pos = get_selection_index(option, selection)
+      unselect(socket, pos)
+    else
+      select(socket, option, extra_params)
+    end
+  end
+
   defp maybe_select(socket, extra_params) do
     select(socket, Enum.at(socket.assigns.options, socket.assigns.active_option), extra_params)
   end
 
+  defp get_selection_index(option, selection) do
+    Enum.find_index(selection, fn %{label: label} -> label == option.label end)
+  end
+
+  defp select(
+         %{assigns: %{selection: selection, max_selectable: max_selectable}} = socket,
+         _selected,
+         _extra_params
+       )
+       when max_selectable > 0 and length(selection) >= max_selectable do
+    assign(socket, hide_dropdown: not quick_tags_mode?(socket))
+  end
+
   defp select(socket, selected, extra_params) do
     selection =
-      case socket.assigns.mode do
-        :tags ->
-          socket.assigns.selection ++ [selected]
-
-        _ ->
-          [selected]
+      if socket.assigns.mode in [:tags, :quick_tags] do
+        socket.assigns.selection ++ [selected]
+      else
+        [selected]
       end
 
     socket
     |> assign(
-      active_option: -1,
+      active_option: if(quick_tags_mode?(socket), do: socket.assigns.active_option, else: -1),
       selection: selection,
-      hide_dropdown: true
+      hide_dropdown: not quick_tags_mode?(socket)
     )
     |> maybe_save_selection()
     |> client_select(Map.merge(%{input_event: true}, extra_params))
@@ -543,7 +564,7 @@ defmodule LiveSelect.Component do
     List.wrap(normalize_selection_value(value, options ++ current_selection, value_mapper))
   end
 
-  defp update_selection(value, current_selection, options, :tags, value_mapper) do
+  defp update_selection(value, current_selection, options, _mode, value_mapper) do
     value = if Enumerable.impl_for(value), do: value, else: [value]
 
     Enum.map(value, &normalize_selection_value(&1, options ++ current_selection, value_mapper))
@@ -713,24 +734,36 @@ defmodule LiveSelect.Component do
 
   defp encode(value) when is_atom(value) or is_binary(value) or is_number(value), do: value
 
-  defp encode(value), do: Jason.encode!(value)
+  defp encode(value), do: Phoenix.json_library().encode!(value)
 
   defp already_selected?(option, selection) do
-    option.label in Enum.map(selection, & &1.label)
+    Enum.any?(selection, fn item -> item.label == option.label end)
+  end
+
+  defp quick_tags_mode?(socket) do
+    socket.assigns.mode == :quick_tags
   end
 
   defp next_selectable(%{
          selection: selection,
          active_option: active_option,
-         max_selectable: max_selectable
+         max_selectable: max_selectable,
+         mode: mode
        })
-       when max_selectable > 0 and length(selection) >= max_selectable,
+       when mode != :quick_tags and max_selectable > 0 and length(selection) >= max_selectable,
        do: active_option
 
-  defp next_selectable(%{options: options, active_option: active_option, selection: selection}) do
+  defp next_selectable(%{
+         options: options,
+         active_option: active_option,
+         selection: selection,
+         mode: mode
+       }) do
     options
     |> Enum.with_index()
-    |> Enum.reject(fn {opt, _} -> active_option == opt || already_selected?(opt, selection) end)
+    |> Enum.reject(fn {opt, _} ->
+      active_option == opt || (mode != :quick_tags && already_selected?(opt, selection))
+    end)
     |> Enum.map(fn {_, idx} -> idx end)
     |> Enum.find(active_option, &(&1 > active_option))
   end
@@ -738,16 +771,24 @@ defmodule LiveSelect.Component do
   defp prev_selectable(%{
          selection: selection,
          active_option: active_option,
-         max_selectable: max_selectable
+         max_selectable: max_selectable,
+         mode: mode
        })
-       when max_selectable > 0 and length(selection) >= max_selectable,
+       when mode != :quick_tags and max_selectable > 0 and length(selection) >= max_selectable,
        do: active_option
 
-  defp prev_selectable(%{options: options, active_option: active_option, selection: selection}) do
+  defp prev_selectable(%{
+         options: options,
+         active_option: active_option,
+         selection: selection,
+         mode: mode
+       }) do
     options
     |> Enum.with_index()
     |> Enum.reverse()
-    |> Enum.reject(fn {opt, _} -> active_option == opt || already_selected?(opt, selection) end)
+    |> Enum.reject(fn {opt, _} ->
+      active_option == opt || (mode != :quick_tags && already_selected?(opt, selection))
+    end)
     |> Enum.map(fn {_, idx} -> idx end)
     |> Enum.find(active_option, &(&1 < active_option || active_option == -1))
   end
