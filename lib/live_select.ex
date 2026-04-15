@@ -169,20 +169,14 @@ defmodule LiveSelect do
 
   ## Dynamically updating the selection
 
-  You can also update the selection dynamically by passing an 1 arity function that receives the current selection to `:update_selection`:
+  You can dynamically update the selection by using the `:update_selection` assign.
+  `:update_selection` must be a 1-arity function that receives the current selection and returns the new one:
 
   ```
   send_update(LiveSelect.Component, id: live_select_id, update_selection: fn current_selection -> Enum.filter(current_selection, &String.length(&1.label) > 3))
   ```
 
   In this case, only the values with a label longer than 3 characters will be kept in the selection.
-
-  Another example that appends values to the current selection:
-
-  ```
-  values_to_append = [1, 2, 3]
-  send_update(LiveSelect.Component, id: live_select_id, update_selection: fn current_selection -> current_selection ++ values_to_append end)
-  ```
 
   ## Examples
 

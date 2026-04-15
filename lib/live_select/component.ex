@@ -165,7 +165,7 @@ defmodule LiveSelect.Component do
           socket,
           :selection,
           fn selection, %{options: options, mode: mode, value_mapper: value_mapper} ->
-            set_selection(
+            update_selection(
               field.value,
               selection,
               options,
@@ -183,13 +183,14 @@ defmodule LiveSelect.Component do
         socket =
           update(socket, :selection, fn
             selection, %{options: options, value: value, mode: mode, value_mapper: value_mapper} ->
-              set_selection(value, selection, options, mode, value_mapper)
+              update_selection(value, selection, options, mode, value_mapper)
           end)
 
         client_select(socket, %{
           input_event: true,
           current_text: new_current_text_after_selection(socket)
         })
+        |> scroll_to_active_option()
       else
         socket
       end
@@ -201,7 +202,13 @@ defmodule LiveSelect.Component do
           %{update_selection: update_fn, options: options, mode: mode, value_mapper: value_mapper} ->
             update_selection(update_fn, selection, options, mode, value_mapper)
         end)
-        |> client_select(%{input_event: true})
+        |> then(fn socket ->
+          client_select(socket, %{
+            input_event: true,
+            current_text: new_current_text_after_selection(socket)
+          })
+        end)
+        |> scroll_to_active_option()
       else
         socket
       end
@@ -586,18 +593,7 @@ defmodule LiveSelect.Component do
     })
   end
 
-  defp set_selection(nil, _current_selection, _options, _mode, _value_mapper), do: []
-
-  defp set_selection(value, current_selection, options, :single, value_mapper) do
-    List.wrap(normalize_selection_value(value, options ++ current_selection, value_mapper))
-  end
-
-  defp set_selection(value, current_selection, options, _mode, value_mapper) do
-    value = if Enumerable.impl_for(value), do: value, else: [value]
-
-    Enum.map(value, &normalize_selection_value(&1, options ++ current_selection, value_mapper))
-    |> Enum.reject(&is_nil/1)
-  end
+  defp update_selection(nil, _current_selection, _options, _mode, _value_mapper), do: []
 
   defp update_selection(update_fn, current_selection, options, _mode, value_mapper)
        when is_function(update_fn, 1) do
@@ -610,6 +606,17 @@ defmodule LiveSelect.Component do
       |> Enum.reject(&is_nil/1)
 
     Enum.uniq(existing ++ new)
+  end
+
+  defp update_selection(value, current_selection, options, :single, value_mapper) do
+    List.wrap(normalize_selection_value(value, options ++ current_selection, value_mapper))
+  end
+
+  defp update_selection(value, current_selection, options, _mode, value_mapper) do
+    value = if Enumerable.impl_for(value), do: value, else: [value]
+
+    Enum.map(value, &normalize_selection_value(&1, options ++ current_selection, value_mapper))
+    |> Enum.reject(&is_nil/1)
   end
 
   defp update_selection(_update_fn, _current_selection, _options, _mode, _value_mapper) do
