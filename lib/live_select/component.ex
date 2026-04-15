@@ -182,7 +182,8 @@ defmodule LiveSelect.Component do
       if Map.has_key?(assigns, :value) do
         socket =
           update(socket, :selection, fn
-            selection, %{options: options, value: value, mode: mode, value_mapper: value_mapper} ->
+            selection,
+            %{options: options, value: value, mode: mode, value_mapper: value_mapper} ->
               update_selection(value, selection, options, mode, value_mapper)
           end)
 
@@ -597,6 +598,13 @@ defmodule LiveSelect.Component do
     Enum.uniq(existing ++ new)
   end
 
+  defp update_selection(update_fn, _current_selection, _options, _mode, _value_mapper)
+       when is_function(update_fn) do
+    raise """
+    Option for `:update_selection` must be a function with arity 1
+    """
+  end
+
   defp update_selection(value, current_selection, options, :single, value_mapper) do
     List.wrap(normalize_selection_value(value, options ++ current_selection, value_mapper))
   end
@@ -606,12 +614,6 @@ defmodule LiveSelect.Component do
 
     Enum.map(value, &normalize_selection_value(&1, options ++ current_selection, value_mapper))
     |> Enum.reject(&is_nil/1)
-  end
-
-  defp update_selection(_update_fn, _current_selection, _options, _mode, _value_mapper) do
-    raise """
-    Option for `:update_selection` must be a function with arity 1
-    """
   end
 
   defp normalize_selection_value(%Ecto.Changeset{action: :replace}, _options, _value_mapper),
