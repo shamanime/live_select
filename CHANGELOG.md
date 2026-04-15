@@ -1,6 +1,85 @@
+## 1.7.5 (2026-02-08)
+
+* Bugfix: [fix out-of-bounds active_option crash](https://github.com/maxmarcon/live_select/pull/132)
+
+## 1.7.4 (2025-11-28)
+
+* Bugfix: [quick_tags with overflow does not preserve scroll](https://github.com/maxmarcon/live_select/issues/129)
+* Bugfix: [Getting undefined in search box when a tag is unselected](https://github.com/maxmarcon/live_select/issues/128)
+
+## 1.7.3 (2025-10-19)
+
+* Bugfix: [label not found in nil](https://github.com/maxmarcon/live_select/issues/125)
+
+## 1.7.2 (2025-10-17)
+
+* ~~Bugfix: [label not found in nil](https://github.com/maxmarcon/live_select/issues/125)~~
+* Bugfix: [2 bugs hit on form recovery](https://github.com/maxmarcon/live_select/pull/124)
+
+## 1.7.1 (2025-09-17)
+
+* Do not show <div> container for tags when not in tagged mode
+* Unify blur experience between single and tagged modes
+
+## 1.7.0 (2025-06-19)
+
+* DaisyUI 5 compatibility - active options now include both `active` and `menu-active` classes for compatibility with DaisyUI 3, 4, and 5
+* Add `keep_options_on_select` flag. By default, when not in `quick_tags` mode, input text field and list of selectable options are now cleared after selection. This flag suppresses this behavior   
+* Positioning and sizing clear buttons entirely using JS
+* `no_basic_styles_for_clear_buttons` flag to suppress basic positioning and styling of clear buttons
+
+## 1.6.0 (2025-04-13)
+
+* add ability to disable options
+
+## 1.5.5 (2025-03-31)
+
+* make clear buttons also honor the disabled attribute
+* remember entered text when blurring away from the element
+
+## 1.5.4 (2025-01-29)
+
+* Fix [bug](https://github.com/maxmarcon/live_select/issues/98) causing selection recovery to fail if Phoenix uses the built-in JSON module from Elixir 1.18
+
+## 1.5.3 (2025-01-27)
+
+* Fix [bug](https://github.com/maxmarcon/live_select/issues/96) that causes selection recovery to fail when `input_for` is used to render the component
+* Remove dependency from `Jason` library
+
+## 1.5.2 (2024-12-28)
+
+* Fix [bug](https://github.com/maxmarcon/live_select/issues/70) where the keyboard doesn't show on some mobile browsers if an element is already selected in single mode
+
+## 1.5.1 (2024-12-28)
+
+* Add unavailable_option_class to style options that cannot be selected because of max_selectable > 0
+* Fix can't remove items in quick_tags mode via dropdown with max_selectable
+
+## 1.5.0 (2024-12-27)
+
+* new quick_tags mode 
+* showcase app: add toggle to style options as checkboxes
+
+## 1.4.4 (2024-12-07)
+
+* support for LiveView 1.0.0
+
+## 1.4.3 (2024-10-28)
+
+* add options clear_tag_button_class and clear_tag_button_extra_class to style button to clear tags
+* fix [bug](https://github.com/maxmarcon/live_select/issues/81) where selection was not restored after focus+blur when value is pre-selected or forced 
+  
+## 1.4.2 (2024-06-19)
+
+do not restore selection after blur it it was cleard by hitting the clear button
+
+## 1.4.1 (2024-06-18)
+
+* fix bug introduced by LV-1.0's new focus behavior (https://github.com/maxmarcon/live_select/issues/72)
+
 ## 1.4.0 (2024-03-18)
 
-* support for assocations and embeds
+* support for associations and embeds
 * add `value_mapper` assign and `decode/1` function
 
 ## 1.3.3 (2024-02-06)

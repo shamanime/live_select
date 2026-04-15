@@ -1,4 +1,4 @@
-defmodule LiveSelectTagsTest do
+defmodule LiveSelectQuickTagsTest do
   @moduledoc false
 
   use LiveSelectWeb.ConnCase, async: true
@@ -6,7 +6,7 @@ defmodule LiveSelectTagsTest do
   import LiveSelect.TestHelpers
 
   setup %{conn: conn} do
-    {:ok, live, _html} = live(conn, "/?mode=tags")
+    {:ok, live, _html} = live(conn, "/?mode=quick_tags")
 
     %{live: live}
   end
@@ -25,36 +25,28 @@ defmodule LiveSelectTagsTest do
     assert_selected_multiple(live, ~w(B D))
   end
 
-  test "already selected options are not selectable in the dropdown using keyboard", %{live: live} do
+  test "already selected options can be deselected in the dropdown using keyboard", %{live: live} do
     stub_options(~w(A B C D))
 
     type(live, "ABC")
 
     select_nth_option(live, 2)
+    assert_selected_multiple(live, ~w(B))
 
-    type(live, "ABC")
-    navigate(live, 2, :down)
     keydown(live, "Enter")
-
-    assert_selected_multiple(live, ~w(B C))
-
-    type(live, "ABC")
-    navigate(live, 10, :down)
-    navigate(live, 10, :up)
-    keydown(live, "Enter")
-
-    assert_selected_multiple(live, ~w(B C A))
+    assert_selected_multiple(live, ~w())
   end
 
-  test "already selected options are not selectable in the dropdown using mouseclick", %{
+  test "already selected options can be deselected in the dropdown using mouseclick", %{
     live: live
   } do
     select_and_open_dropdown(live, 2)
 
     assert_selected_multiple(live, ~w(B))
 
-    assert :not_selectable =
-             select_nth_option(live, 2, method: :click, flunk_if_not_selectable: false)
+    select_nth_option(live, 2, method: :click)
+
+    assert_selected_multiple(live, ~w())
   end
 
   test "hitting enter with only one option selects it", %{live: live} do
@@ -77,7 +69,7 @@ defmodule LiveSelectTagsTest do
     assert_selected_multiple_static(live, [])
   end
 
-  test "hitting enter with only one option does not select it if already selected", %{live: live} do
+  test "hitting enter with only one option deselects it if already selected", %{live: live} do
     stub_options(~w(A))
 
     type(live, "ABC")
@@ -86,11 +78,9 @@ defmodule LiveSelectTagsTest do
 
     assert_selected_multiple(live, ~w(A))
 
-    type(live, "ABC")
-
     keydown(live, "Enter")
 
-    assert_selected_multiple_static(live, ~w(A))
+    assert_selected_multiple_static(live, ~w())
   end
 
   describe "when user_defined_options = true" do
@@ -197,7 +187,7 @@ defmodule LiveSelectTagsTest do
 
   describe "when max_selectable option is set" do
     setup %{conn: conn} do
-      {:ok, live, _html} = live(conn, "/?mode=tags&max_selectable=2")
+      {:ok, live, _html} = live(conn, "/?mode=quick_tags&max_selectable=2")
 
       %{live: live}
     end
@@ -209,35 +199,45 @@ defmodule LiveSelectTagsTest do
 
       select_nth_option(live, 2, method: :key)
 
-      type(live, "ABC")
-
       select_nth_option(live, 4, method: :click)
 
       assert_selected_multiple(live, ~w(B D))
-
-      type(live, "ABC")
 
       select_nth_option(live, 3, method: :click)
 
       assert_selected_multiple_static(live, ~w(B D))
     end
 
-    test "disabled options stay disabled", %{live: live} do
-      stub_options([{"A", 1, true}, {"B", 2, false}, {"C", 3, false}, {"D", 4, false}])
+    test "can deselect option by clicking on option in dropdown", %{live: live} do
+      stub_options(~w(A B C D))
 
       type(live, "ABC")
-      select_nth_option(live, 2, method: :click)
+
+      select_nth_option(live, 2, method: :key)
+
+      select_nth_option(live, 4, method: :click)
+
+      assert_selected_multiple(live, ~w(B D))
+
+      select_nth_option(live, 4, method: :click)
+
+      assert_selected_multiple(live, ~w(B))
+    end
+
+    test "can deselect option by navigating to it and hitting enter", %{live: live} do
+      stub_options(~w(A B C D))
 
       type(live, "ABC")
-      select_nth_option(live, 3, method: :click)
-      assert_selected_multiple(live, [%{value: 2, label: "B"}, %{value: 3, label: "C"}])
 
-      unselect_nth_option(live, 2)
-      assert_selected_multiple(live, [%{value: 2, label: "B"}])
+      select_nth_option(live, 2, method: :key)
 
-      type(live, "ABC")
-      select_nth_option(live, 1, method: :click)
-      assert_selected_multiple(live, [%{value: 2, label: "B"}])
+      select_nth_option(live, 4, method: :click)
+
+      assert_selected_multiple(live, ~w(B D))
+
+      select_nth_option(live, 4, method: :key)
+
+      assert_selected_multiple(live, ~w(B))
     end
   end
 
@@ -246,21 +246,15 @@ defmodule LiveSelectTagsTest do
 
     type(live, "ABC")
 
-    select_nth_option(live, 2)
+    select_nth_option(live, 1, method: :click)
+    select_nth_option(live, 2, method: :click)
+    select_nth_option(live, 3, method: :click)
 
-    type(live, "ABC")
-
-    select_nth_option(live, 3)
-
-    type(live, "ABC")
-
-    select_nth_option(live, 1)
-
-    assert_selected_multiple(live, ~w(B D A))
+    assert_selected_multiple(live, ~w(A B C))
 
     unselect_nth_option(live, 2)
 
-    assert_selected_multiple(live, ~w(B A))
+    assert_selected_multiple(live, ~w(A C))
   end
 
   test "can set an option as sticky so it can't be removed", %{live: live} do
@@ -329,7 +323,7 @@ defmodule LiveSelectTagsTest do
   end
 
   test "can be disabled", %{conn: conn} do
-    {:ok, live, _html} = live(conn, "/?disabled=true&mode=tags")
+    {:ok, live, _html} = live(conn, "/?disabled=true&mode=quick_tags")
 
     stub_options(~w(A B C D))
 
@@ -409,45 +403,6 @@ defmodule LiveSelectTagsTest do
     send_update(live, value: [3, 5], options: [{"C", 3}, {"D", 4}, {"E", 5}])
 
     assert_selected_multiple(live, [%{label: "C", value: 3}, %{label: "E", value: 5}])
-  end
-
-  test "can dynamically change the selection - append example", %{conn: conn} do
-    {:ok, live, _html} = live(conn, "/?mode=tags")
-
-    stub_options(~w(A B C))
-
-    type(live, "ABC")
-
-    select_nth_option(live, 1)
-
-    assert_selected_multiple(live, ~w(A))
-
-    send_update(live, update_selection: fn selection -> selection ++ ["B"] end)
-
-    assert_selected_multiple(live, ~w(A B))
-
-    send_update(live, update_selection: fn selection -> selection ++ ["C"] end)
-
-    assert_selected_multiple(live, ~w(A B C))
-
-    # Avoids duplicates
-    send_update(live, update_selection: fn selection -> selection ++ ["C"] end)
-
-    assert_selected_multiple(live, ~w(A B C))
-  end
-
-  test "can dynamically change the selection - filter example", %{conn: conn} do
-    {:ok, live, _html} = live(conn, "/?mode=tags")
-
-    send_update(live, value: ~w(A B))
-
-    assert_selected_multiple(live, ~w(A B))
-
-    send_update(live,
-      update_selection: fn selection -> Enum.filter(selection, &(&1.label == "A")) end
-    )
-
-    assert_selected_multiple(live, ~w(A))
   end
 
   test "can render custom clear button", %{conn: conn} do
@@ -609,55 +564,11 @@ defmodule LiveSelectTagsTest do
     stub_options([{"A", 1, true}, {"B", 2, false}, {"C", 3, false}])
 
     type(live, "ABC")
+
     select_nth_option(live, 1, method: :click)
     refute_selected(live)
 
-    type(live, "ABC")
     select_nth_option(live, 2, method: :click)
-    assert_selected_multiple(live, [%{label: "B", value: 2}])
-  end
-
-  test "selecting clears the options and current input text", %{live: live} do
-    stub_options(%{
-      "A" => 1,
-      "B" => 2,
-      "C" => 3
-    })
-
-    type(live, "ABC")
-
-    select_nth_option(live, 2)
-
-    assert_selected_multiple(live, [%{label: "B", value: 2}], "")
-
-    select_nth_option(live, 1)
-
-    assert_selected_multiple_static(live, [%{label: "B", value: 2}])
-  end
-
-  describe "when keep_options_on_select = true" do
-    setup %{conn: conn} do
-      {:ok, live, _html} = live(conn, "/?mode=tags&keep_options_on_select=true")
-
-      %{live: live}
-    end
-
-    test "selecting does not clear the options or the current input text", %{live: live} do
-      stub_options(%{
-        "A" => 1,
-        "B" => 2,
-        "C" => 3
-      })
-
-      type(live, "ABC")
-
-      select_nth_option(live, 2)
-
-      assert_selected_multiple(live, [%{label: "B", value: 2}], "ABC")
-
-      select_nth_option(live, 1)
-
-      assert_selected_multiple(live, [%{label: "B", value: 2}, %{label: "A", value: 1}], "ABC")
-    end
+    assert_selected_multiple(live, [%{value: 2, label: "B"}])
   end
 end

@@ -12,7 +12,7 @@ interface for search-like functionalities with type-ahead. `LiveSelect`s feature
 
 * Single as well as multiple selection
 * Options to configure the behaviour, such as minimum number of characters that trigger an update or the maximum number of selectable options
-* Default styles for daisyUI and tailwindcss, which are fully customizable and can be completely overriden if needed
+* Default styles for daisyUI and tailwindcss, which are fully customizable and can be completely overridden if needed
 * Ability to customize the rendered HTML for dropdown entries and tags using slots.
 
 ### [Try it in the showcase app](https://live-select.fly.dev/) 🔬
@@ -24,6 +24,10 @@ interface for search-like functionalities with type-ahead. `LiveSelect`s feature
 ### Multiple selection (tags mode)
 
 ![DEMO](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/demo_tags.gif)
+
+### Multiple selection (quick_tags mode)
+
+![DEMO](https://raw.githubusercontent.com/maxmarcon/live_select/main/priv/static/images/demo_quick_tags.gif)
 
 ## Usage Example 🧭
 
@@ -44,8 +48,6 @@ _Template:_
 _In the LiveView or LiveComponent that's the target of your form events:_
 
   ```elixir
-  import LiveSelect
-
   @impl true
   def handle_event("live_select_change", %{"text" => text, "id" => live_select_id}, socket) do 
     cities = City.search(text)
@@ -139,6 +141,14 @@ The choice of style is controlled by the `style` option
 in [live_select/1](https://hexdocs.pm/live_select/LiveSelect.html#live_select/1).
 `tailwind` and `daisyui` styles come with sensible defaults which can be selectively extended or completely overridden.
 
+Refer to the [Styling section](https://hexdocs.pm/live_select/styling.html) for further details.
+
+> ⚠️ **Attention**
+> 
+> Please note the different paths for a standalone or umbrella app.
+
+### tailwind v3
+
 If you're using `tailwind` or `daisyui` styles, you need to add one of the following lines to the `content` section in
 your `tailwind.config.js`:
 
@@ -153,9 +163,17 @@ module.exports = {
 }
 ```
 
-Notice the different paths for a standalone or umbrella app.
+### tailwind v4
 
-Refer to the [Styling section](https://hexdocs.pm/live_select/styling.html) for further details.
+If you are using `tailwind v4+` and are not using a `tailwind.config.js` file you instead need to add the relevant `@source` directive to your `app.css` file:
+
+```css
+@source "../../deps/live_select/lib/live_select/component.*ex" /* for a standalone app */
+@source "../../../../deps/live_select/lib/live_select/component.*ex" /* for an umbrella app */
+```
+
+
+
 
 ## Showcase app 🎪
 
@@ -186,6 +204,7 @@ Use `mix test` to run the entire test suite, which is subdivided into 3 main fil
 * `test/live_select/component_test.exs` - everything that can be tested by rendering the component statically
 * `test/live_select_test.exs` - tests for `single` mode that require a running LiveView 
 * `test/live_select_tags_test.exs` - tests for `tags` mode that require a running LiveView
+* `test/live_select_quick_tags_test.exs` - tests for `quick_tags` mode that require a running LiveView
 
 Tests that require a LiveView use the showcase app as the parent LiveView.
 
@@ -201,4 +220,5 @@ Tests that require a LiveView use the showcase app as the parent LiveView.
 - [X] Enable multiple selection mode
 - [X] Expose as function component (and drop LV 0.17 support)
 - [X] Add cheatsheet
-- [ ] Additional multiple selection mode 
+- [X] Additional multiple selection mode 
+- [ ] Add section to document testing strategies
