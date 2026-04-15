@@ -582,17 +582,6 @@ defmodule LiveSelect.Component do
     )
   end
 
-  defp parent_event(socket, nil, _payload), do: socket
-
-  defp parent_event(socket, event, payload) do
-    socket
-    |> push_event("parent_event", %{
-      id: socket.assigns.id,
-      event: event,
-      payload: payload
-    })
-  end
-
   defp update_selection(nil, _current_selection, _options, _mode, _value_mapper), do: []
 
   defp update_selection(update_fn, current_selection, options, _mode, value_mapper)
