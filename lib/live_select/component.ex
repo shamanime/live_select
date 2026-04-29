@@ -611,6 +611,7 @@ defmodule LiveSelect.Component do
 
   defp normalize_selection_value(selection_value, options, value_mapper) do
     selection_value = value_mapper.(selection_value)
+    options = Enum.reject(options, &is_nil/1)
 
     if option = Enum.find(options, fn %{value: value} -> selection_value == value end) do
       option
